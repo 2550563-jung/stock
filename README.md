@@ -30,7 +30,6 @@ supabase/migrations/   DB 스키마·함수 (순서대로 실행)
   ..03_st_engine.sql     매칭 엔진, 장 시작/마감, 시세 시뮬레이션
   ..04_st_api.sql        로그인·방·주문·조회 RPC + 실행 권한
   ..05_st_cron_seed.sql  pg_cron 스케줄(2초 틱, 5분 정리) + 메인 시장 생성
-supabase/setup_remaining.sql  03~05 를 합친 파일
 web/                   정적 웹 클라이언트 (index.html, app.js, style.css, config.js)
 ```
 
@@ -38,11 +37,11 @@ web/                   정적 웹 클라이언트 (index.html, app.js, style.css
 
 ## 실행
 
-1. DB: Supabase SQL Editor 에서 `supabase/migrations/` 파일을 번호 순서대로 실행합니다.
-2. 웹: `web/config.js` 의 URL·publishable 키를 확인한 뒤, `web/` 폴더를 아무 정적 호스팅(GitHub Pages 등)에 올리거나 로컬에서 실행합니다.
-   ```bash
-   cd web && python3 -m http.server 8080   # http://localhost:8080
-   ```
+DB는 Supabase 프로젝트에 이미 적용되어 있고, pg_cron 이 2초마다 시장을 움직입니다.
+(새 프로젝트에 설치할 때만 `supabase/migrations/` 파일을 번호 순서대로 SQL Editor 에서 실행)
+
+웹은 서버가 필요 없는 정적 파일이라, **`web/index.html` 을 브라우저로 바로 열면** 됩니다.
+여러 사람이 접속하려면 같은 파일을 각자 열거나, `web/` 폴더를 정적 호스팅(GitHub Pages, Netlify Drop 등)에 올리면 됩니다.
 
 ## 보안 메모
 - 테이블은 모두 RLS 활성화. 시세·체결·뉴스·채팅만 공개 조회 가능하고, 적정가(`st_stock_sim`)·계좌·주문은 비공개입니다.

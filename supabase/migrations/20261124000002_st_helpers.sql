@@ -1,4 +1,4 @@
--- 한국장 규칙 헬퍼  [적용 완료]
+-- 한국장 규칙 헬퍼
 -- 호가가격단위 (2023.1 개편, 유가/코스닥 공통)
 create or replace function public.st_tick_size(p numeric) returns int
 language sql immutable set search_path = public as $$

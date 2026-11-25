@@ -36,3 +36,10 @@ begin
     perform public.st_open_day(rid);
   end if;
 end $$;
+
+-- 보안 린트: 고정 search_path
+alter function public.st_randn() set search_path = public;
+alter function public.st_tax_rate() set search_path = public;
+alter function public.st_fee_rate() set search_path = public;
+alter function public.st_account_json(public.st_accounts) set search_path = public;
+alter function public.st_check_nick(text) set search_path = public;

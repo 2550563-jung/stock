@@ -71,7 +71,7 @@ declare
   rm public.st_rooms;
   q bigint;
   px int;
-  idx int;
+  cidx int;
   impact numeric;
   player_side text;
 begin
@@ -120,10 +120,10 @@ begin
            volume = volume + q, turnover = turnover + q * px, updated_at = now()
      where id = o.stock_id;
 
-    idx := least(38, greatest(0, floor(extract(epoch from (clock_timestamp() - rm.phase_started_at))
+    cidx := least(38, greatest(0, floor(extract(epoch from (clock_timestamp() - rm.phase_started_at))
                                        / rm.day_seconds * 39)))::int;
     insert into public.st_candles(room_id, stock_id, day, idx, o, h, l, c, v)
-    values (o.room_id, o.stock_id, rm.current_day, idx, px, px, px, px, q)
+    values (o.room_id, o.stock_id, rm.current_day, cidx, px, px, px, px, q)
     on conflict (stock_id, day, idx) do update
        set h = greatest(public.st_candles.h, px), l = least(public.st_candles.l, px),
            c = px, v = public.st_candles.v + q;
@@ -348,7 +348,7 @@ begin
       ('MRC', '미르건설',   '건설',     1580, 0.045)
     ) as t(symbol, name, sector, base, vol)
   loop
-    price := public.st_floor_tick(rec.base * case when p_randomize then 0.7 + random() * 0.6 else 1 end);
+    price := public.st_floor_tick((rec.base * case when p_randomize then 0.7 + random() * 0.6 else 1 end)::numeric);
     insert into public.st_stocks(room_id, symbol, name, sector, prev_close, last)
     values (p_room, rec.symbol, rec.name, rec.sector, price, price) returning id into sid;
     insert into public.st_stock_sim(stock_id, fair, vol) values (sid, price, rec.vol);

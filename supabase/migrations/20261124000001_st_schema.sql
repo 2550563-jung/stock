@@ -1,4 +1,4 @@
--- 주식 게임 스키마 (모든 객체는 st_ 접두어)  [적용 완료]
+-- 주식 게임 스키마 (모든 객체는 st_ 접두어)
 create table public.st_accounts (
   id uuid primary key default gen_random_uuid(),
   nickname text not null,
