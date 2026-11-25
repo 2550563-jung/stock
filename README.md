@@ -40,8 +40,12 @@ web/                   정적 웹 클라이언트 (index.html, app.js, style.css
 DB는 Supabase 프로젝트에 이미 적용되어 있고, pg_cron 이 2초마다 시장을 움직입니다.
 (새 프로젝트에 설치할 때만 `supabase/migrations/` 파일을 번호 순서대로 SQL Editor 에서 실행)
 
-웹은 서버가 필요 없는 정적 파일이라, **`web/index.html` 을 브라우저로 바로 열면** 됩니다.
-여러 사람이 접속하려면 같은 파일을 각자 열거나, `web/` 폴더를 정적 호스팅(GitHub Pages, Netlify Drop 등)에 올리면 됩니다.
+**플레이 주소: https://2550563-jung.github.io/stock/** (GitHub Pages, `gh-pages` 브랜치)
+
+`web/` 을 수정한 뒤 다시 배포하려면:
+```bash
+git subtree split --prefix web -b gh-pages-new && git push -f origin gh-pages-new:gh-pages && git branch -D gh-pages-new
+```
 
 ## 보안 메모
 - 테이블은 모두 RLS 활성화. 시세·체결·뉴스·채팅만 공개 조회 가능하고, 적정가(`st_stock_sim`)·계좌·주문은 비공개입니다.
