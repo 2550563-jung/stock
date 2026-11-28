@@ -31,7 +31,7 @@ const S = {
   timers: [],
   channel: null,
   priceTouched: false,
-  btab: 'holdings',
+  btab: 'feed',
 };
 
 /* ---------- 유틸 ---------- */
@@ -149,6 +149,7 @@ async function setPassword() {
 function renderUser() {
   $('lobby-user').textContent = `${S.account.nickname}${S.account.is_guest ? ' (게스트)' : ''}`;
   $('btn-set-pw').classList.toggle('hidden', !S.account.is_guest);
+  if (window.GameFX) GameFX.renderProfile();
 }
 
 async function enterLobby() {
@@ -213,11 +214,13 @@ function leaveGame() {
   S.timers.forEach(clearInterval);
   S.timers = [];
   if (S.channel) { sb.removeChannel(S.channel); S.channel = null; }
+  if (window.GameFX) GameFX.leave();
   S.roomId = null; S.room = null; S.data = null; S.stocks = []; S.selId = null; S.candles = [];
 }
 
 async function enterGame(roomId) {
   leaveGame();
+  S.ranking = [];
   S.roomId = roomId;
   location.hash = 'room=' + roomId;
   show('game');
@@ -230,6 +233,7 @@ async function enterGame(roomId) {
   loadRanking();
   loadNewsAndChat();
   subscribeRealtime();
+  if (window.GameFX) GameFX.enter(roomId);
   S.timers.push(setInterval(poll, 1000));
   S.timers.push(setInterval(loadCandles, 4000));
   S.timers.push(setInterval(loadRanking, 5000));
@@ -248,6 +252,7 @@ async function poll() {
     S.room = d.room;
     S.stocks = d.stocks || [];
     S.clockOffset = new Date(d.now).getTime() - Date.now();
+    if (d.profile) S.account = d.profile;
     if (!S.selId && S.stocks.length) { S.selId = S.stocks[0].id; polling = false; return poll(); }
     renderGame();
   } catch (err) {
@@ -301,6 +306,7 @@ function renderGame() {
   renderAccount();
   renderOrderForm();
   renderBottom();
+  if (window.GameFX) GameFX.onPoll(d);
 }
 
 function renderClock() {
@@ -460,7 +466,8 @@ function renderOrderForm() {
     $('o-est').textContent = `${S.otype === 'market' ? '약 ' : ''}${fmt(v - Math.floor(v * FEE) - Math.floor(v * TAX))}원 (세후)`;
   }
   const r = S.room;
-  const canTrade = me && r.status === 'running' && r.phase === 'open' && !r.paused;
+  const frozen = me && me.frozen_until && new Date(me.frozen_until).getTime() > serverNow();
+  const canTrade = me && r.status === 'running' && r.phase === 'open' && !r.paused && !frozen;
   $('o-submit').disabled = !canTrade;
 }
 
@@ -587,7 +594,14 @@ function renderBottom() {
 async function loadRanking() {
   if (!S.roomId) return;
   try {
-    S.ranking = await rpc('st_ranking', { p_room: S.roomId });
+    const data = await rpc('st_ranking', { p_room: S.roomId });
+    const old = S.ranking || [];
+    S.rankMove = {};
+    data.forEach((r, i) => {
+      const pi = old.findIndex((o) => o.nickname === r.nickname);
+      if (pi >= 0 && pi !== i) S.rankMove[r.nickname] = pi - i;
+    });
+    S.ranking = data;
     if (S.btab === 'ranking') renderRanking();
   } catch { /* 다음 주기에 재시도 */ }
 }
@@ -595,13 +609,16 @@ function renderRanking() {
   const start = S.room ? S.room.start_cash : 1;
   const medal = ['🥇', '🥈', '🥉'];
   $('btab-ranking').innerHTML = S.ranking.length
-    ? `<table><thead><tr><th>순위</th><th>닉네임</th><th>총자산</th><th>수익률</th></tr></thead><tbody>
+    ? `<table><thead><tr><th>순위</th><th>플레이어</th><th>총자산</th><th>수익률</th><th>거래</th></tr></thead><tbody>
       ${S.ranking.map((r, i) => {
         const ret = ((r.total - start) / start) * 100;
         const me = S.account && r.nickname === S.account.nickname;
-        return `<tr class="${me ? 'me-row' : ''}"><td>${medal[i] || i + 1}</td>
-          <td>${esc(r.nickname)}${r.is_guest ? ' <span class="muted small">게스트</span>' : ''}${r.resets ? ` <span class="muted small">초기화 ${r.resets}회</span>` : ''}</td>
-          <td>${fmt(r.total)}</td><td class="${cls(ret)}">${pct(ret)}</td></tr>`;
+        const mv = (S.rankMove || {})[r.nickname] || 0;
+        const move = !mv ? '' : mv > 0 ? `<span class="up small">▲${mv}</span>` : `<span class="down small">▼${-mv}</span>`;
+        const tags = `${r.frozen ? ' ❄️' : ''}${r.insured ? ' 🛡️' : ''}${r.win_streak >= 3 ? ` 🔥${r.win_streak}` : ''}`;
+        return `<tr class="${me ? 'me-row' : ''}"><td>${medal[i] || i + 1} ${move}</td>
+          <td><span class="av">${esc(r.avatar || '🐜')}</span> ${esc(r.nickname)} <span class="lv">Lv.${r.level || 1} ${esc(r.title || '')}</span>${tags}${r.resets ? ` <span class="muted small">파산 ${r.resets}회</span>` : ''}</td>
+          <td>${fmt(r.total)}</td><td class="${cls(ret)}">${pct(ret)}</td><td>${fmt(r.trades || 0)}</td></tr>`;
       }).join('')}</tbody></table>`
     : '<div class="empty">참가자가 없습니다.</div>';
 }
@@ -645,6 +662,7 @@ function subscribeRealtime() {
       const cl = $('chat-list');
       const atBottom = cl.scrollHeight - cl.scrollTop - cl.clientHeight < 40;
       cl.appendChild(chatItem(p.new));
+      if (window.GameFX) GameFX.onChat(p.new);
       while (cl.children.length > 100) cl.firstChild.remove();
       if (atBottom) cl.scrollTop = cl.scrollHeight;
     })
@@ -762,7 +780,7 @@ function drawChart() {
   g.fillText(fmt(s.last), plotW + 6, ly + 4);
   // x축 라벨
   g.fillStyle = MUTED;
-  const step = Math.max(1, Math.ceil(data.length / Math.max(2, Math.floor(plotW / 90))));
+  const step = Math.max(1, Math.ceil(data.length / Math.max(2, Math.floor(plotW / 120))));
   data.forEach((d, i) => {
     if (i % step !== 0) return;
     g.textAlign = i === 0 ? 'left' : 'center';

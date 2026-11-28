@@ -3,15 +3,15 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>모의 증권거래소</title>
+  <title>떡상 증권</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <!-- ========== 로그인 ========== -->
   <section id="view-auth" class="view hidden">
     <div class="auth-card">
-      <h1>📈 모의 증권거래소</h1>
-      <p class="muted">가상 기업 주식을 실시간으로 다른 플레이어와 거래하세요.</p>
+      <h1>🚀 떡상 증권</h1>
+      <p class="muted">친구들과 실시간으로 주식 대결! 폭등·폭락 이벤트, 찌라시, 얼음 공격까지.</p>
       <div class="tabs" id="auth-tabs">
         <button data-tab="guest" class="active">닉네임으로 시작</button>
         <button data-tab="login">로그인</button>
@@ -34,7 +34,7 @@
   <!-- ========== 로비 ========== -->
   <section id="view-lobby" class="view hidden">
     <header class="topbar">
-      <div class="brand">📈 모의 증권거래소</div>
+      <div class="brand">🚀 떡상 증권</div>
       <div class="spacer"></div>
       <span id="lobby-user" class="user-chip"></span>
       <button id="btn-set-pw" class="btn ghost small hidden">비밀번호 설정</button>
@@ -42,6 +42,7 @@
     </header>
     <main class="lobby">
       <div class="lobby-col">
+        <div id="profile-card" class="profile-card"></div>
         <h2>방 목록</h2>
         <div id="room-list" class="room-list"></div>
         <button id="btn-refresh-rooms" class="btn ghost small">새로고침</button>
@@ -56,7 +57,7 @@
         <form id="create-form" class="form-grid">
           <label>방 이름<input id="cr-name" maxlength="30" value="주식 대결" required /></label>
           <label>시작 자금(원)<input id="cr-cash" type="number" min="1000000" max="10000000000" step="1000000" value="10000000" required /></label>
-          <label>하루 장 시간(초)<input id="cr-day" type="number" min="60" max="1800" value="180" required /></label>
+          <label>하루 장 시간(초)<input id="cr-day" type="number" min="30" max="1800" value="90" required /></label>
           <label>거래일 수<input id="cr-days" type="number" min="1" max="30" value="5" required /></label>
           <label>최대 인원<input id="cr-max" type="number" min="2" max="100" value="10" required /></label>
           <label class="check"><input id="cr-private" type="checkbox" /> 비공개 (코드로만 입장)</label>
@@ -66,6 +67,9 @@
         <details class="rules">
           <summary>게임 규칙</summary>
           <ul>
+            <li>🚀 <b>이벤트</b>: 수시로 20초짜리 폭등·폭락·황소장·곰장이 터집니다. 타이밍을 잡으세요!</li>
+            <li>🎒 <b>아이템</b>: 입장 시 2개, 매일 개장 때 1개, 레벨업 때 1개 지급. 🔮내부자 정보 📣찌라시 🧨악성 루머 🛡️손실 보험 ❄️얼음 🎰복권</li>
+            <li>🏅 <b>레벨·업적</b>: 거래하고 수익을 낼수록 경험치가 쌓여 개미 → 주식의 신까지 승급합니다.</li>
             <li>호가창에 쌓인 주문끼리 <b>가격 우선 → 시간 우선</b>으로 체결됩니다. 다른 플레이어와 시장조성 봇이 같은 호가창에서 거래합니다.</li>
             <li>가격제한폭 <b>±30%</b> (전일 종가 기준), 호가 단위는 가격대별로 1~1,000원.</li>
             <li>수수료 매수·매도 각 <b>0.015%</b>, 매도 시 거래세 <b>0.20%</b> (게임용 설정값).</li>
@@ -86,6 +90,8 @@
       <div id="g-phase" class="phase"></div>
       <div id="g-clock" class="clock"></div>
       <div class="spacer"></div>
+      <div id="g-me" class="me-chip"></div>
+      <button id="btn-sound" class="btn ghost small" title="효과음">🔊</button>
       <div class="assets">
         <span class="muted small">총자산</span> <b id="g-total">-</b>
         <span id="g-ret" class="small"></span>
@@ -93,6 +99,8 @@
     </header>
 
     <div id="g-waiting" class="banner hidden"></div>
+    <div id="g-event" class="event-banner hidden"></div>
+    <div id="ticker" class="ticker"></div>
 
     <main class="game">
       <aside class="panel stocks-panel">
@@ -123,7 +131,14 @@
         <div class="panel-title">호가</div>
         <table class="book"><tbody id="book"></tbody></table>
 
-        <div class="order">
+        <div class="items-box">
+          <div class="panel-title">🎒 아이템 <span id="item-cd" class="muted small"></span></div>
+          <div id="items" class="items"></div>
+          <select id="item-target" class="hidden"></select>
+        </div>
+        <div id="status-chips" class="status-chips"></div>
+        <div class="order" id="order-box">
+          <div id="frozen-overlay" class="frozen-overlay hidden"></div>
           <div class="tabs side-tabs">
             <button data-side="buy" class="active buy">매수</button>
             <button data-side="sell" class="sell">매도</button>
@@ -157,19 +172,22 @@
 
       <section class="panel bottom-panel">
         <div class="tabs bottom-tabs">
-          <button data-btab="holdings" class="active">잔고</button>
+          <button data-btab="feed" class="active">🔥 실시간</button>
+          <button data-btab="holdings">잔고</button>
           <button data-btab="orders">미체결 <span id="cnt-orders"></span></button>
           <button data-btab="fills">체결내역</button>
           <button data-btab="ranking">순위</button>
           <button data-btab="news">뉴스</button>
           <button data-btab="chat">채팅</button>
         </div>
-        <div id="btab-holdings" class="btab"></div>
+        <div id="btab-feed" class="btab"><ul id="feed-list" class="feed"></ul></div>
+        <div id="btab-holdings" class="btab hidden"></div>
         <div id="btab-orders" class="btab hidden"></div>
         <div id="btab-fills" class="btab hidden"></div>
         <div id="btab-ranking" class="btab hidden"></div>
         <div id="btab-news" class="btab hidden"><ul id="news-list" class="news"></ul></div>
         <div id="btab-chat" class="btab hidden">
+          <div class="emoji-bar" id="emoji-bar"></div>
           <ul id="chat-list" class="chat"></ul>
           <form id="chat-form" class="row">
             <input id="chat-input" maxlength="200" placeholder="메시지 입력" autocomplete="off" />
@@ -179,10 +197,17 @@
       </section>
     </main>
     <div id="toast" class="toast hidden"></div>
+    <div id="ceremony" class="modal hidden"></div>
   </section>
+
+  <canvas id="fx"></canvas>
+  <div id="float-layer"></div>
+  <div id="popup" class="popup hidden"></div>
+  <div id="avatar-picker" class="modal hidden"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
   <script src="config.js"></script>
   <script src="app.js"></script>
+  <script src="game.js"></script>
 </body>
 </html>
