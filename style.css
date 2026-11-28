@@ -186,5 +186,148 @@ h2 { font-size: 16px; margin: 18px 0 10px; }
   .q-stats { grid-template-columns: repeat(2, auto); }
   .topbar { padding: 8px 12px; gap: 8px; }
   .form-grid { grid-template-columns: 1fr; }
-  .bottom-tabs button { font-size: 12px; padding: 7px 2px; }
+  .bottom-tabs { overflow-x: auto; }
+  .bottom-tabs button { font-size: 12px; padding: 7px 8px; white-space: nowrap; flex: 0 0 auto; }
 }
+
+/* ============================================================
+ *  게임 레이어
+ * ============================================================ */
+.lv { font-size: 11px; color: var(--accent); font-weight: 700; }
+.av { font-size: 18px; }
+.xpbar { height: 6px; background: var(--panel-2); border-radius: 99px; overflow: hidden; margin: 6px 0 4px; }
+.xpbar > div { height: 100%; background: linear-gradient(90deg, #f5b301, #ff7a00); transition: width .6s; }
+.xpbar.mini { width: 80px; height: 4px; margin: 3px 0 0; }
+
+/* 로비 프로필 */
+.profile-card { background: linear-gradient(135deg, #1f2633, #171c25); border: 1px solid var(--line);
+  border-radius: 12px; padding: 16px; margin-top: 16px; }
+.pc-top { display: flex; gap: 14px; align-items: center; }
+.pc-avatar { font-size: 44px; width: 72px; height: 72px; border-radius: 50%; border: 2px solid var(--accent);
+  background: var(--panel-2); display: grid; place-items: center; flex-shrink: 0; }
+.pc-avatar:hover { transform: scale(1.06); }
+.pc-info { flex: 1; min-width: 0; }
+.pc-name { font-size: 18px; font-weight: 800; }
+.pc-title { color: var(--accent); font-weight: 700; font-size: 13px; }
+.ach-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); gap: 6px; margin-top: 12px; }
+.ach { text-align: center; padding: 6px 2px; border-radius: 8px; background: var(--panel-2); opacity: .35; filter: grayscale(1); }
+.ach.on { opacity: 1; filter: none; box-shadow: inset 0 0 0 1px var(--accent); }
+.ach span { font-size: 20px; display: block; }
+.ach small { font-size: 10px; color: var(--muted); }
+.avatar-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 12px 0; }
+.avatar-grid button { font-size: 32px; padding: 8px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel-2); }
+.avatar-grid button:hover { border-color: var(--accent); }
+
+/* 게임 상단 */
+.me-chip { display: flex; gap: 6px; align-items: center; font-size: 12px; background: var(--panel-2); padding: 4px 10px; border-radius: 99px; }
+
+/* 이벤트 배너 */
+.event-banner { padding: 10px 16px; text-align: center; font-weight: 800; font-size: 16px; color: #fff;
+  animation: pulse 1s infinite; display: flex; gap: 10px; justify-content: center; align-items: center; flex-wrap: wrap; }
+.event-banner.ev-pump, .event-banner.ev-bull { background: linear-gradient(90deg, #ff2d55, #ff7a00, #ff2d55); background-size: 200% 100%; animation: pulse 1s infinite, slide 2s linear infinite; }
+.event-banner.ev-dump, .event-banner.ev-bear { background: linear-gradient(90deg, #1e3a8a, #3182f6, #1e3a8a); background-size: 200% 100%; animation: pulse 1s infinite, slide 2s linear infinite; }
+.ev-count { background: rgba(0,0,0,.3); padding: 2px 10px; border-radius: 99px; font-variant-numeric: tabular-nums; }
+.event-banner .btn { color: #fff; border-color: rgba(255,255,255,.6); background: transparent; }
+@keyframes pulse { 50% { filter: brightness(1.25); } }
+@keyframes slide { to { background-position: 200% 0; } }
+.ev-tag { font-size: 10px; padding: 0 4px; border-radius: 3px; color: #fff; animation: pulse .6s infinite; }
+.ev-tag.up { background: var(--up); }
+.ev-tag.down { background: var(--down); }
+
+/* 상단 티커 (중요 소식 알림) */
+.ticker { position: fixed; top: 64px; left: 50%; transform: translate(-50%, -150%); z-index: 20; max-width: min(640px, calc(100% - 32px));
+  background: #222a38; border: 1px solid var(--line); border-radius: 99px; padding: 8px 18px; font-weight: 700;
+  box-shadow: 0 8px 24px rgba(0,0,0,.4); transition: transform .35s cubic-bezier(.2,1.4,.4,1), opacity .2s; opacity: 0; pointer-events: none; text-align: center; }
+.ticker.show { transform: translate(-50%, 0); opacity: 1; }
+.ticker.t-event { background: #ff7a00; color: #111; border-color: #ff7a00; }
+.ticker.t-ach, .ticker.t-level, .ticker.t-end { background: var(--accent); color: #111; border-color: var(--accent); }
+.ticker.t-profit, .ticker.t-streak { border-color: var(--up); }
+.ticker.t-loss { border-color: var(--down); }
+
+/* 가격 깜빡임 */
+.stock-row.flash-up { animation: flashUp .8s; }
+.stock-row.flash-down { animation: flashDown .8s; }
+@keyframes flashUp { from { background: rgba(240,68,82,.35); } }
+@keyframes flashDown { from { background: rgba(49,130,246,.35); } }
+#q-last.pop-up, #q-last.pop-down { display: inline-block; animation: pop .35s; }
+@keyframes pop { 40% { transform: scale(1.12); } }
+
+/* 아이템 */
+.items-box { border-top: 1px solid var(--line); }
+.items { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 6px 8px; }
+.item { position: relative; border: 1px solid var(--line); background: var(--panel-2); border-radius: 8px; padding: 6px 2px;
+  display: flex; flex-direction: column; align-items: center; gap: 2px; transition: transform .1s; }
+.item:not(:disabled):hover { transform: translateY(-2px); border-color: var(--accent); box-shadow: 0 0 12px rgba(245,179,1,.3); }
+.item .ic { font-size: 20px; }
+.item .nm { font-size: 10px; color: var(--muted); }
+.item .cnt { position: absolute; top: -4px; right: -4px; background: var(--accent); color: #111; font-size: 10px; font-weight: 800;
+  border-radius: 99px; min-width: 16px; height: 16px; display: grid; place-items: center; }
+.item.empty { opacity: .3; }
+.item:disabled { cursor: not-allowed; }
+#item-target { margin: 0 8px 6px; width: calc(100% - 16px); background: var(--panel-2); color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: 6px; }
+.status-chips { display: flex; gap: 4px; flex-wrap: wrap; padding: 0 8px; }
+.chip { font-size: 11px; padding: 2px 8px; border-radius: 99px; background: var(--panel-2); font-weight: 700; }
+.chip.ins { color: #2ecc71; }
+.chip.fire { color: #ff7a00; animation: pulse 1s infinite; }
+.chip.cold { color: #7dd3fc; }
+.order { position: relative; }
+.frozen-overlay { position: absolute; inset: 0; z-index: 3; background: rgba(125, 211, 252, .25); backdrop-filter: blur(3px);
+  display: grid; place-items: center; text-align: center; font-size: 18px; font-weight: 800; color: #e0f2fe; border-radius: 6px; }
+
+/* 피드 */
+.feed { list-style: none; margin: 0; padding: 0; }
+.feed li { padding: 6px 8px; border-bottom: 1px solid var(--line); font-size: 13px; animation: slideIn .3s; }
+.feed time { color: var(--muted); font-size: 11px; margin-right: 8px; }
+.feed .feed-event { background: rgba(255,122,0,.12); font-weight: 700; }
+.feed .feed-ach, .feed .feed-level, .feed .feed-end { background: rgba(245,179,1,.10); }
+.feed .feed-profit { color: #ff8a95; }
+.feed .feed-loss { color: #8ab8ff; }
+.feed .feed-item { color: #d8b4fe; }
+@keyframes slideIn { from { transform: translateX(-12px); opacity: 0; } }
+
+/* 이모지 */
+.emoji-bar { display: flex; gap: 4px; flex-wrap: wrap; padding-bottom: 6px; }
+.emoji-bar button { font-size: 20px; border: 1px solid var(--line); background: var(--panel-2); border-radius: 8px; padding: 2px 8px; }
+.emoji-bar button:active { transform: scale(1.3); }
+
+/* 효과 레이어 */
+#fx { position: fixed; inset: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 40; }
+#float-layer { position: fixed; inset: 0; pointer-events: none; z-index: 41; overflow: hidden; }
+.float-text { position: fixed; transform: translateX(-50%); font-weight: 900; font-size: 18px; white-space: nowrap;
+  text-shadow: 0 2px 8px rgba(0,0,0,.6); animation: floatUp 1.8s ease-out forwards; }
+.float-text.big { font-size: 28px; }
+.float-text.up { color: var(--up); }
+.float-text.down { color: #7fb0ff; }
+@keyframes floatUp { 0% { opacity: 0; transform: translate(-50%, 10px) scale(.6); } 15% { opacity: 1; transform: translate(-50%, 0) scale(1.15); }
+  100% { opacity: 0; transform: translate(-50%, -90px) scale(1); } }
+.float-emoji { position: fixed; bottom: -40px; font-size: 40px; animation: emojiUp 3s ease-out forwards; }
+@keyframes emojiUp { to { transform: translateY(-75vh) rotate(25deg); opacity: 0; } }
+.shake { animation: shake .4s; }
+.shake-strong { animation: shake .6s 2; }
+@keyframes shake { 20% { transform: translate(-6px, 2px); } 40% { transform: translate(6px, -2px); } 60% { transform: translate(-4px, 1px); } 80% { transform: translate(4px, -1px); } }
+
+/* 팝업 */
+.popup { position: fixed; top: 40%; left: 50%; transform: translate(-50%, -50%); z-index: 42; background: #1d2430;
+  border: 2px solid var(--line); border-radius: 16px; padding: 22px 30px; text-align: center; font-size: 16px; line-height: 1.6;
+  box-shadow: 0 20px 60px rgba(0,0,0,.6); animation: popIn .4s cubic-bezier(.2,1.6,.4,1); max-width: calc(100% - 32px); }
+.popup.gold { border-color: var(--accent); box-shadow: 0 0 40px rgba(245,179,1,.4); }
+.popup.cold { border-color: #7dd3fc; box-shadow: 0 0 40px rgba(125,211,252,.4); }
+.popup.secret { border-color: #a259ff; box-shadow: 0 0 40px rgba(162,89,255,.4); }
+@keyframes popIn { from { transform: translate(-50%, -50%) scale(.5); opacity: 0; } }
+
+/* 모달 / 시상식 */
+.modal { position: fixed; inset: 0; z-index: 30; background: rgba(0,0,0,.6); display: grid; place-items: center; padding: 16px; }
+.modal-card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 24px; width: 100%; max-width: 460px; }
+.ceremony h2 { text-align: center; font-size: 22px; margin-top: 0; }
+.podium { display: grid; grid-template-columns: 1fr 1fr 1fr; align-items: end; gap: 8px; margin: 20px 0; text-align: center; }
+.pod-av { font-size: 40px; animation: bounce 1s infinite; }
+.p1 .pod-av { font-size: 56px; }
+.pod-nm { font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pod-block { margin-top: 6px; border-radius: 8px 8px 0 0; background: var(--panel-2); font-size: 28px; display: grid; place-items: center; }
+.p1 .pod-block { height: 90px; background: linear-gradient(#f5b301, #b37f00); }
+.p2 .pod-block { height: 64px; background: linear-gradient(#cbd5e1, #8a93a3); }
+.p3 .pod-block { height: 44px; background: linear-gradient(#d97706, #92400e); }
+@keyframes bounce { 50% { transform: translateY(-6px); } }
+.awards { display: grid; gap: 6px; font-size: 13px; margin-bottom: 12px; }
+.awards div { background: var(--panel-2); padding: 8px 10px; border-radius: 8px; }
+.my-rank { text-align: center; font-size: 16px; }
